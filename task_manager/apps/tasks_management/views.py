@@ -4,6 +4,8 @@ from rest_framework import status, viewsets
 from rest_framework.response import Response
 from apps.tasks_management.models import TaskManager
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import action
+
 
 class CustomPagination(PageNumberPagination):
     page_size = 5  # Default page size
@@ -83,3 +85,45 @@ class TaskManagerView(viewsets.ModelViewSet):
             }
         }
         return Response(custom_response, status=status.HTTP_200_OK)
+
+
+class TaskManagerViewUserFilter(viewsets.ModelViewSet):
+    queryset = TaskManager.objects.filter(is_deleted=False)
+    serializer_class = TaskManagerSerializer
+    
+    # Remove lookup_field since we'll handle user lookup via custom action
+    # lookup_field = 'user'  # This won't work well for one-to-many relationships
+
+    @action(detail=False, methods=['get'], url_path='user/(?P<username>[^/.]+)')
+    def get_by_user(self, request, username=None):
+        """
+        Retrieve all task for a specific user
+        Example: /api/products-user/alice/
+        """
+        try:
+            # Get all task for the specified username
+            task = TaskManager.objects.filter(
+                task_username__username=username,
+                is_deleted=False
+            )
+            
+            # Paginate the results
+            page = self.paginate_queryset(task)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            
+            serializer = self.get_serializer(task, many=True)
+            
+            return Response({
+                "status": "success",
+                "message": f"Found {task.count()} task for user {username}",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                "status": "error",
+                "message": "Failed to retrieve task",
+                "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
