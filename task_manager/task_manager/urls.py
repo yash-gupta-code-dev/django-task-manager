@@ -22,6 +22,7 @@ urlpatterns = [
     path('user/', include('apps.users_management.urls')),
     path('products/', include('apps.projects_managements.urls')),
     path('tasks/', include('apps.tasks_management.urls')),
+    path('login/', include('apps.login.urls'))
     
 ]
 from django.urls import get_resolver

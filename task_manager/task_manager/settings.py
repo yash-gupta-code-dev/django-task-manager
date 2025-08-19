@@ -39,8 +39,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     #Adding DRF here 
     'rest_framework',
+    'rest_framework_simplejwt', #for JWT token
 
     #Adding my apps here
+    'apps',
     "apps.projects_managements",
     "apps.tasks_management",
     "apps.users_management",
@@ -83,8 +85,19 @@ WSGI_APPLICATION = "task_manager.wsgi.application"
 #Added pagiation settings for DRF
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 3
+    'PAGE_SIZE': 3,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+            'rest_framework_simplejwt.authentication.JWTAuthentication',
+        ),
 }
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+   
+}
+
 
 # We must connect the db to postgres here 
 DATABASES = {
