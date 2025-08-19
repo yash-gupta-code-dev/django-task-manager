@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from apps.tasks_management.models import TaskManager
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
+from rest_framework.views import APIView
 
 
 class CustomPagination(PageNumberPagination):
@@ -126,4 +127,31 @@ class TaskManagerViewUserFilter(viewsets.ModelViewSet):
                 "status": "error",
                 "message": "Failed to retrieve task",
                 "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class TaskUserFilterView(APIView):
+    """
+    API View to filter tasks by username
+    """
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        if not username:
+            return Response({
+                "status": "error",
+                "message": "Username is required"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            tasks = TaskManager.objects.filter(task_username__username=username, is_deleted=False)
+            serializer = TaskManagerSerializer(tasks, many=True)
+            return Response({
+                "status": "success",
+                "message": f"Found {tasks.count()} tasks for user {username}",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": "error",
+                "message": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
