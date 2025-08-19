@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     #Adding DRF here 
     'rest_framework',
-    'rest_framework_simplejwt', #for JWT token
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 
     #Adding my apps here
     'apps',
@@ -84,18 +85,44 @@ WSGI_APPLICATION = "task_manager.wsgi.application"
 
 #Added pagiation settings for DRF
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 3,
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-            'rest_framework_simplejwt.authentication.JWTAuthentication',
-        ),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 3,
+
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
 }
 
+
 from datetime import timedelta
+
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-   
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Access tokens are typically short-lived [4, 9, 13]
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),   # Refresh tokens are longer-lived [4, 9, 13]
+    'ROTATE_REFRESH_TOKENS': True,                  # Issue a new refresh token with each refresh request [13]
+    'BLACKLIST_AFTER_ROTATION': True,               # Blacklist the old refresh token after rotation [13]
+    'UPDATE_LAST_LOGIN': False,                     # Optional: Update user's last_login field
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,                      # Uses your project's SECRET_KEY for signing [13]
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'JWK_URL': None,
+    'LEEWAY': 0,
+
+    'AUTH_HEADER_TYPES': ('Bearer',),               # Authorization header prefix [13]
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    'JTI_CLAIM': 'jti',
+
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
 

@@ -22,46 +22,54 @@ class ProjectViewSet(viewsets.ModelViewSet):
         }
         return Response(custom_response, status=status.HTTP_200_OK)
 
-    def create(self,request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response('error', status=status.HTTP_400_BAD_REQUEST)
-
+            serializer.save()   #  automatically assigns request.user in serializer
+            return Response({
+                "status": "success",
+                "message": "Project created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            "status": "error",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
-        
-        # The get_object() will now use project_unique_id automatically
-        project = self.get_object()  
-    
-        serializer = self.get_serializer(project, data=request.data, partial=None)
+        project = self.get_object()
+        serializer = self.get_serializer(project, data=request.data, partial=True, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-    
-        custom_response = {
+        serializer.save()
+        return Response({
             "status": "success",
             "message": "Project updated successfully",
             "data": serializer.data
-        }
-        return Response(custom_response, status=status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
-        # The get_object() will now use project_unique_id automatically
-        project = self.get_object()  
+        project = self.get_object()
         project.is_deleted = True
         project.save()
-    
-        custom_response = {
+        return Response({
             "status": "success",
             "message": "Project deleted successfully",
             "data": {
                 "project_unique_id": project.project_unique_id,
                 "project_name": project.project_name
             }
-        }
-        return Response(custom_response, status=status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        project = self.get_object()
+        serializer = self.get_serializer(project)
+        return Response({
+            "status": "success",
+            "message": "Project retrieved successfully",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+
+
 
     def retrieve(self, request, *args, **kwargs):
         # Get the project using project_unique_id (handled automatically by lookup_field)
