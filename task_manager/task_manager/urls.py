@@ -20,7 +20,8 @@ from django.urls import path, include
 
 urlpatterns = [
     path('user/', include('apps.users_management.urls')),
-    path('products/', include('apps.projects_managements.urls'))
+    path('products/', include('apps.projects_managements.urls')),
+    path('tasks/', include('apps.tasks_management.urls')),
     
 ]
 from django.urls import get_resolver
