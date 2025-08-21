@@ -1,11 +1,8 @@
-from django.urls import path
+from rest_framework import routers
 from . import views
 
-
-from rest_framework import routers
-
 router = routers.SimpleRouter()
-router.register(r'products', views.ProjectViewSet)
-router.register(r'products-user', views.ProductViewsetUser, basename='user')
-urlpatterns = router.urls
+router.register(r'projects', views.ProjectViewSet)
 
+
+urlpatterns = router.urls
